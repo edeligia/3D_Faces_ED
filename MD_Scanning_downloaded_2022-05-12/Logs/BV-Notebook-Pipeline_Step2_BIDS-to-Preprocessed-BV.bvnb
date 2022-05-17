@@ -1,0 +1,494 @@
+{
+    "bvnbformat": 1,
+    "bvnbformat_minor": 0,
+    "cells": [
+        {
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "# BV Notebook Pipeline, Step 2: BIDS to Preprocessed BV Files (November 11, 2020)\n",
+                "## Overview\n",
+                "Applies Culham Lab's standard preprocessing to a BIDS project."
+            ]
+        },
+        {
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "## Parameters\n",
+                "Sets parameters (edit these), generates file paths, and checks for missing subjects/runs.\n",
+                "\n",
+                "This cell must be run before any other."
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": 165,
+            "metadata": {
+            },
+            "outputs": [
+                {
+                    "name": "stdout",
+                    "output_type": "stream",
+                    "text": [
+                        "Generating filepaths...\n",
+                        "Searching for raw files. NIfTI will be converted to BV formats as needed...\n",
+                        "Subjects and runs to process:\n",
+                        "\t ['sub-01', array([ True,  True])]\n",
+                        "Note that skipped subjects/runs will not be displayed during later steps.\n",
+                        "Preparations complete. You can now run any of the later cells."
+                    ]
+                }
+            ],
+            "source": [
+                "import numpy as np\n",
+                "import os.path as path\n",
+                "\n",
+                "########################################################################################################\n",
+                "############################################ Set Parameters ############################################\n",
+                "########################################################################################################\n",
+                "\n",
+                "ROOT_DIRECTORY = 'C:/Users/CulhamLabTR/Desktop/Marisa/Dicoms/PIL04 - 20211018/BIDS' #use / as file separator, even on Windows\n",
+                "TASK_NAME = 'Loc' #must match naming of BIDS files\n",
+                "\n",
+                "#these can be set higher than needed\n",
+                "LAST_SUBJECT_NUMBER = 1\n",
+                "LAST_RUN_NUMBER = 2\n",
+                "\n",
+                "#Set True to repeat steps when output files already exist (does not affect nii conversion in this cell - that has a separate toggle below)\n",
+                "REDO_EXISTING = False\n",
+                "\n",
+                "#Set True to repeat nii conversion in this cell\n",
+                "REDO_NII_CONVERSION = True\n",
+                "\n",
+                "#VTC resolution (mm)\n",
+                "VTC_RES = 2\n",
+                "\n",
+                "#post-processing of VTCs\n",
+                "THP_VALUE = 3 #number of sine / cosine pairs to fit low frequncy drifts\n",
+                "SPATIAL_SMOOTHING_FWHM_MM = 6\n",
+                "\n",
+                "#TODO - add option for second pass of brain extraction + inhomogeneity correction\n",
+                "\n",
+                "########################################################################################################\n",
+                "########################################## Generate File Paths #########################################\n",
+                "########################################################################################################\n",
+                "\n",
+                "print('Generating filepaths...')\n",
+                "\n",
+                "#root dir must end in filesep\n",
+                "if ROOT_DIRECTORY[-1] != '/':\n",
+                "    ROOT_DIRECTORY = ROOT_DIRECTORY + '/'\n",
+                "\n",
+                "#check if root dir exists\n",
+                "if not path.isdir(ROOT_DIRECTORY):\n",
+                "    raise Exception(f\"Root directory does not exist: {ROOT_DIRECTORY}\")\n",
+                "\n",
+                "#sub/run codes\n",
+                "names_sub = [f\"sub-{s:02}\" for s in range(1,LAST_SUBJECT_NUMBER+1)]\n",
+                "names_run = [f\"run-{r:02}\" for r in range(1,LAST_RUN_NUMBER+1)]\n",
+                "\n",
+                "#vmr\n",
+                "paths_anat_nii = [f\"{ROOT_DIRECTORY}sub-01/ses-01/anat/sub-01_ses-01_T1w.nii\" for sub in names_sub]\n",
+                "paths_vmr_raw = [f\"{ROOT_DIRECTORY}derivatives/sub-01/ses-01/anat/sub-01_ses-01_T1w.vmr\" for sub in names_sub]\n",
+                "\n",
+                "#fmr\n",
+                "paths_func_nii = [[f\"{ROOT_DIRECTORY}sub-01/ses-01/func/sub-01_ses-01_task-{TASK_NAME}_{run}_bold.nii\" for run in names_run] for sub in names_sub]\n",
+                "paths_fmr_raw = [[f\"{ROOT_DIRECTORY}derivatives/sub-01/ses-01/func/{sub}_ses-01_task-{TASK_NAME}_{run}_bold.fmr\" for run in names_run] for sub in names_sub]\n",
+                "\n",
+                "#anatomical preprocessing\n",
+                "paths_vmr_iihc_mni = [f\"{ROOT_DIRECTORY}derivatives/sub-01/ses-01/anat/{sub}_ses-01_T1w_IIHC_MNI.vmr\" for sub in names_sub]\n",
+                "path_trf_mni = [f\"{ROOT_DIRECTORY}derivatives/sub-01/ses-01/anat/{sub}_ses-01_T1w_IIHC_TO_MNI_a12.trf\" for sub in names_sub]\n",
+                "\n",
+                "#coregistration\n",
+                "paths_vmr_iihc = [f\"{ROOT_DIRECTORY}derivatives/sub-01/ses-01/anat/{sub}_ses-01_T1w_IIHC.vmr\" for sub in names_sub]\n",
+                "paths_trf_ia = [[f\"{ROOT_DIRECTORY}derivatives/sub-01/ses-01/func/{sub}_ses-01_task-{TASK_NAME}_{run}_bold-TO-{sub}_T1w_IIHC_IA.trf\" for run in names_run] for sub in names_sub]\n",
+                "paths_trf_fa = [[f\"{ROOT_DIRECTORY}derivatives/sub-01/ses-01/func/{sub}_ses-01_task-{TASK_NAME}_{run}_bold-TO-{sub}_T1w_IIHC_FA.trf\" for run in names_run] for sub in names_sub]\n",
+                "\n",
+                "#functional preprocessing\n",
+                "paths_fmr_sstc = [[f\"{ROOT_DIRECTORY}derivatives/sub-01/ses-01/func/{sub}_ses-01_task-{TASK_NAME}_{run}_bold_SCCTBL.fmr\" for run in names_run] for sub in names_sub]\n",
+                "paths_fmr_sstc_mc = [[f\"{ROOT_DIRECTORY}derivatives/sub-01/ses-01/func/{sub}_ses-01_task-{TASK_NAME}_{run}_bold_SCCTBL_3DMCTS.fmr\" for run in names_run] for sub in names_sub]\n",
+                "\n",
+                "#functinal normalization\n",
+                "paths_vtc = [[f\"{ROOT_DIRECTORY}derivatives/sub-01/ses-01/func/{sub}_ses-01_task-{TASK_NAME}_{run}_bold_SCCTBL_3DMCTS_256_trilin_2x1.0_MNI.vtc\" for run in names_run] for sub in names_sub]\n",
+                "\n",
+                "#post-processing of VTCs\n",
+                "paths_vtc_thp = [[f\"{ROOT_DIRECTORY}derivatives/sub-01/ses-01/func/{sub}_ses-01_task-{TASK_NAME}_{run}_bold_SCCTBL_3DMCTS_256_trilin_2x1.0_MNI_THPGLMF{THP_VALUE}c.vtc\" for run in names_run] for sub in names_sub]\n",
+                "paths_vtc_thp_ss = [[f\"{ROOT_DIRECTORY}derivatives/sub-01/ses-01/func/{sub}_ses-01_task-{TASK_NAME}_{run}_bold_SCCTBL_3DMCTS_256_trilin_2x1.0_MNI_THPGLMF{THP_VALUE}c_SD3DVSS{SPATIAL_SMOOTHING_FWHM_MM:.2f}mm.vtc\" for run in names_run] for sub in names_sub]\n",
+                "\n",
+                "########################################################################################################\n",
+                "######################################## Look For Missing Files ########################################\n",
+                "########################################################################################################\n",
+                "\n",
+                "subs_to_do = np.full((LAST_SUBJECT_NUMBER),False)\n",
+                "runs_to_do = np.full((LAST_SUBJECT_NUMBER,LAST_RUN_NUMBER),False)\n",
+                "\n",
+                "print('Searching for raw files. NIfTI will be converted to BV formats as needed...')\n",
+                "\n",
+                "for s in range(0,LAST_SUBJECT_NUMBER):\n",
+                "    #has raw vmr?\n",
+                "    if (not path.isfile(paths_vmr_raw[s])) | (REDO_NII_CONVERSION):\n",
+                "        #no raw, look for nii\n",
+                "        if path.isfile(paths_anat_nii[s]):\n",
+                "            #found nii, convert to vmr\n",
+                "            vmr = bv.open(paths_anat_nii[s])\n",
+                "            if vmr != None:\n",
+                "                vmr.close()\n",
+                "            else:\n",
+                "                raise Exception(f\"An error occured while converting: {paths_anat_nii[s]}\")\n",
+                "        else:\n",
+                "            #missing anat\n",
+                "            print(f\"\\tAnatomical could not be found for {names_sub[s]}. Subject will be skipped!\")\n",
+                "            continue\n",
+                "    \n",
+                "    #anat exists, include subject\n",
+                "    subs_to_do[s] = True\n",
+                "\n",
+                "    #check func runs\n",
+                "    for r in range(0,LAST_RUN_NUMBER):\n",
+                "        if (not path.isfile(paths_fmr_raw[s][r])) | (REDO_NII_CONVERSION):\n",
+                "            #no raw, look for nii\n",
+                "            if path.isfile(paths_func_nii[s][r]):\n",
+                "                #found nii, convert to vmr\n",
+                "                vmr = bv.open(paths_func_nii[s][r])\n",
+                "                if vmr != None:\n",
+                "                    vmr.close()\n",
+                "                else:\n",
+                "                    raise Exception(f\"An error occured while converting: {paths_func_nii[s][r]}\")\n",
+                "            else:\n",
+                "                #missing run\n",
+                "                print(f\"\\tFunctional could not be found for {names_sub[s]} {names_run[r]}. Run will be skipped!\")\n",
+                "                continue\n",
+                "    \n",
+                "        #anat exists, include subject\n",
+                "        runs_to_do[s][r] = True\n",
+                "\n",
+                "#no subjects?\n",
+                "if not any(subs_to_do):\n",
+                "    raise Exception(\"No valid anatomicals were found!\")\n",
+                "\n",
+                "#no runs?\n",
+                "if not runs_to_do.any():\n",
+                "    raise Exception(\"No valid functionals were found!\")\n",
+                "\n",
+                "########################################################################################################\n",
+                "######################################## Display Valid Sub/Run #########################################\n",
+                "########################################################################################################\n",
+                "\n",
+                "print('Subjects and runs to process:')\n",
+                "for s in range(0,LAST_SUBJECT_NUMBER):\n",
+                "    print(f\"\\t {[names_sub[s] , runs_to_do[s]]}\")\n",
+                "print('Note that skipped subjects/runs will not be displayed during later steps.')\n",
+                "\n",
+                "########################################################################################################\n",
+                "######################################## Preparations Complete #########################################\n",
+                "########################################################################################################\n",
+                "\n",
+                "print('Preparations complete. You can now run any of the later cells.')"
+            ]
+        },
+        {
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "## Anatomical Preprocessing\n",
+                "Performs brain extraction, inhomogeneity correction, and normalization to MNI space."
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": 167,
+            "metadata": {
+            },
+            "outputs": [
+                {
+                    "name": "stdout",
+                    "output_type": "stream",
+                    "text": [
+                        "Anatomical Preprocessing...\n",
+                        "\tProcessing sub-01\n",
+                        "\t\tBrain extraction and inhomogeneity correction...\n",
+                        "\t\tNornalization to MNI space...\n",
+                        "Complete!"
+                    ]
+                }
+            ],
+            "source": [
+                "print('Anatomical Preprocessing...')\n",
+                "for s in range(0,LAST_SUBJECT_NUMBER):\n",
+                "    if subs_to_do[s]:\n",
+                "        print(f\"\\tProcessing {names_sub[s]}\")\n",
+                "        if (not path.isfile(paths_vmr_iihc_mni[s])) | (not path.isfile(path_trf_mni[s])) | (REDO_EXISTING):\n",
+                "            vmr = bv.open(paths_vmr_raw[s])\n",
+                "            if vmr != None:\n",
+                "                #brain extraction + iihc\n",
+                "                print('\\t\\tBrain extraction and inhomogeneity correction...')\n",
+                "                ok_iihc = vmr.correct_intensity_inhomogeneities()\n",
+                "                if (not ok_iihc): raise Exception('Failed brain extraction and inhomogeneity correction')\n",
+                "\n",
+                "                #mni normalization\n",
+                "                print('\\t\\tNornalization to MNI space...')\n",
+                "                ok_mni  = vmr.normalize_to_mni_space()\n",
+                "                if (not ok_mni): raise Exception('Failed MNI normalization')\n",
+                "\n",
+                "                vmr.close()\n",
+                "            else:\n",
+                "                raise Exception(f\"Missing input file: {paths_vmr_raw[s]}\")\n",
+                "        else:\n",
+                "            print('\\t\\tAlready processed')\n",
+                "print('Complete!')"
+            ]
+        },
+        {
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "## Coregistration\n",
+                "Performs FMR-VMR coregistration."
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": 169,
+            "metadata": {
+            },
+            "outputs": [
+                {
+                    "name": "stdout",
+                    "output_type": "stream",
+                    "text": [
+                        "Coregistration...\n",
+                        "\tProcessing sub-01\n",
+                        "\t\tProcessing run-01\n",
+                        "\t\t\tCoregistering...\n",
+                        "\t\tProcessing run-02\n",
+                        "\t\t\tCoregistering...\n",
+                        "Complete!"
+                    ]
+                }
+            ],
+            "source": [
+                "print('Coregistration...')\n",
+                "for s in range(0,LAST_SUBJECT_NUMBER):\n",
+                "    if subs_to_do[s]:\n",
+                "        print(f\"\\tProcessing {names_sub[s]}\")\n",
+                "        for r in range(0,LAST_RUN_NUMBER):\n",
+                "            if runs_to_do[s][r]:\n",
+                "                print(f\"\\t\\tProcessing {names_run[r]}\")\n",
+                "                if (not path.isfile(paths_trf_ia[s][r])) | (not path.isfile(paths_trf_fa[s][r])) | (REDO_EXISTING):\n",
+                "                    vmr = bv.open(paths_vmr_iihc[s])\n",
+                "                    if vmr != None:\n",
+                "                        print('\\t\\t\\tCoregistering...')\n",
+                "                        ok_coreg = vmr.coregister_fmr_to_vmr(paths_fmr_raw[s][r])\n",
+                "                        if (not ok_coreg): raise Exception('Failed coregistration')\n",
+                "                        vmr.close()\n",
+                "                    else:\n",
+                "                        raise Exception(f\"Missing input file: {paths_vmr_iihc[s]}\")\n",
+                "                else:\n",
+                "                    print('\\t\\t\\tAlready processed')\n",
+                "print('Complete!')"
+            ]
+        },
+        {
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "## Functional Preprocessing\n",
+                "Performs slice scan time correction and motion correction."
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": 170,
+            "metadata": {
+            },
+            "outputs": [
+                {
+                    "name": "stdout",
+                    "output_type": "stream",
+                    "text": [
+                        "Functional Preprocessing...\n",
+                        "\tProcessing sub-01\n",
+                        "\t\tProcessing run-01\n",
+                        "\t\t\tSlice scan time correction...\n",
+                        "\t\t\tMotion correction...\n",
+                        "\t\tProcessing run-02\n",
+                        "\t\t\tSlice scan time correction...\n",
+                        "\t\t\tMotion correction...\n",
+                        "Complete!"
+                    ]
+                }
+            ],
+            "source": [
+                "print('Functional Preprocessing...')\n",
+                "for s in range(0,LAST_SUBJECT_NUMBER):\n",
+                "    if subs_to_do[s]:\n",
+                "        print(f\"\\tProcessing {names_sub[s]}\")\n",
+                "        for r in range(0,LAST_RUN_NUMBER):\n",
+                "            if runs_to_do[s][r]:\n",
+                "                print(f\"\\t\\tProcessing {names_run[r]}\")\n",
+                "                if (not path.isfile(paths_fmr_sstc_mc[s][r])) | (REDO_EXISTING):\n",
+                "                    #slice scan time correction\n",
+                "                    if (not path.isfile(paths_fmr_sstc[s][r])) | (REDO_EXISTING):\n",
+                "                        fmr = bv.open(paths_fmr_raw[s][r])\n",
+                "                        if fmr != None:\n",
+                "                            print('\\t\\t\\tSlice scan time correction...')\n",
+                "                            ok_scctbl = fmr.correct_slicetiming_using_timingtable(1) #uses the default cubic-spline interpolation method\n",
+                "                            if (not ok_scctbl): raise Exception('Failed slice scan time correction')\n",
+                "                            fmr.close()\n",
+                "                        else:\n",
+                "                            raise Exception(f\"Missing input file: {paths_fmr_raw[s][r]}\")\n",
+                "                    #motion correction\n",
+                "                    fmr = bv.open(paths_fmr_sstc[s][r])\n",
+                "                    if fmr != None:\n",
+                "                        print('\\t\\t\\tMotion correction...')\n",
+                "                        ok_mc = fmr.correct_motion()\n",
+                "                        if (not ok_mc): raise Exception('Failed motion correction')\n",
+                "                        fmr.close()\n",
+                "                    else:\n",
+                "                        raise Exception(f\"Missing input file: {paths_fmr_sstc[s][r]}\")\n",
+                "                else:\n",
+                "                    print('\\t\\t\\tAlready processed')\n",
+                "print('Complete!')"
+            ]
+        },
+        {
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "## Functional Normalization\n",
+                "Performs functional normalization to MNI VTCs."
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": 172,
+            "metadata": {
+            },
+            "outputs": [
+                {
+                    "name": "stdout",
+                    "output_type": "stream",
+                    "text": [
+                        "Functional Normalization...\n",
+                        "\tProcessing sub-01\n",
+                        "\t\tProcessing run-01\n",
+                        "\t\t\tNormalizing...\n",
+                        "Traceback (most recent call last):\n",
+                        "  File \"<string>\", line 13, in <module>\n",
+                        "Exception: Failed functional normalization"
+                    ]
+                }
+            ],
+            "source": [
+                "print('Functional Normalization...')\n",
+                "for s in range(0,LAST_SUBJECT_NUMBER):\n",
+                "    if subs_to_do[s]:\n",
+                "        print(f\"\\tProcessing {names_sub[s]}\")\n",
+                "        for r in range(0,LAST_RUN_NUMBER):\n",
+                "            if runs_to_do[s][r]:\n",
+                "                print(f\"\\t\\tProcessing {names_run[r]}\")\n",
+                "                if (not path.isfile(paths_vtc[s][r])) | (REDO_EXISTING):\n",
+                "                    vmr = bv.open(paths_vmr_iihc[s])\n",
+                "                    if vmr != None:\n",
+                "                        print('\\t\\t\\tNormalizing...')\n",
+                "                        ok_vtc = vmr.create_vtc_in_mni_space(paths_fmr_sstc_mc[s][r], paths_trf_ia[s][r], paths_trf_fa[s][r], path_trf_mni[s], paths_vtc[s][r], VTC_RES, 2) #sinc interpolation (default)\n",
+                "                        if (not ok_vtc): raise Exception('Failed functional normalization')\n",
+                "                        vmr.close()\n",
+                "                    else:\n",
+                "                        raise Exception(f\"Missing input file: {paths_vmr_iihc[s]}\")\n",
+                "                else:\n",
+                "                    print('\\t\\t\\tAlready processed')\n",
+                "print('Complete!')"
+            ]
+        },
+        {
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "## Post-Processing of VTCs\n",
+                "- Temporal Highpass Filtering using the default method `THPGLMF#c` (includes a Linear Trend Removal but does not add _LTR to filenames)\n",
+                "- Spatial Smoothing using default method `SD3DVSS#.##mm`"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": 173,
+            "metadata": {
+            },
+            "outputs": [
+                {
+                    "name": "stdout",
+                    "output_type": "stream",
+                    "text": [
+                        "Post-Processing of VTCs...\n",
+                        "\tProcessing sub-01\n",
+                        "\t\tProcessing run-01\n",
+                        "\t\t\tLinking VTC...\n",
+                        "\t\t\tTemporal highpass filtering...\n",
+                        "\t\t\tSpatial smoothing...\n",
+                        "\t\tProcessing run-02\n",
+                        "\t\t\tLinking VTC...\n",
+                        "\t\t\tTemporal highpass filtering...\n",
+                        "\t\t\tSpatial smoothing...\n",
+                        "Complete!"
+                    ]
+                }
+            ],
+            "source": [
+                "print('Post-Processing of VTCs...')\n",
+                "for s in range(0,LAST_SUBJECT_NUMBER):\n",
+                "    if subs_to_do[s]:\n",
+                "        print(f\"\\tProcessing {names_sub[s]}\")\n",
+                "        for r in range(0,LAST_RUN_NUMBER):\n",
+                "            if runs_to_do[s][r]:\n",
+                "                print(f\"\\t\\tProcessing {names_run[r]}\")\n",
+                "                if (not path.isfile(paths_vtc_thp_ss[s][r])) | (REDO_EXISTING):\n",
+                "                    #VMR\n",
+                "                    vmr = bv.open(paths_vmr_iihc_mni[s])\n",
+                "                    if (vmr == None): raise Exception(f\"Mising input file: {paths_vmr_iihc_mni[s]}\")\n",
+                "                    \n",
+                "                    #Link VTC\n",
+                "                    print('\\t\\t\\tLinking VTC...')\n",
+                "                    ok_link = vmr.link_vtc(paths_vtc[s][r])\n",
+                "                    if (not ok_link): raise Exception('Failed linking VTC')\n",
+                "\n",
+                "                    #THP\n",
+                "                    print('\\t\\t\\tTemporal highpass filtering...')\n",
+                "                    ok_thp = vmr.filter_temporal_highpass_glm_fourier(THP_VALUE)\n",
+                "                    if (not ok_thp): raise Exception('Failed temporal highpass filtering')\n",
+                "\n",
+                "                    #SS\n",
+                "                    print('\\t\\t\\tSpatial smoothing...')\n",
+                "                    ok_smooth = vmr.smooth_spatial(SPATIAL_SMOOTHING_FWHM_MM, 'mm')\n",
+                "                    if (not ok_smooth): raise Exception('Failed spatial smoothing')\n",
+                "                    \n",
+                "                    #Cleanup\n",
+                "                    vmr.close()\n",
+                "                else:\n",
+                "                    print('\\t\\t\\tAlready processed')\n",
+                "print('Complete!')"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": -1,
+            "metadata": {
+            },
+            "outputs": [
+            ],
+            "source": [
+            ]
+        }
+    ],
+    "log_brainvoyager_code": false,
+    "metadata": {
+    }
+}

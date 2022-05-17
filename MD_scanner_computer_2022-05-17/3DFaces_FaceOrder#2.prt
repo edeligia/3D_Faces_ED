@@ -1,0 +1,61 @@
+
+FileVersion:        2
+
+ResolutionOfTime:   Volumes
+
+Experiment:         3DFaces
+
+BackgroundColor:    0 0 0
+TextColor:          255 255 255
+TimeCourseColor:    255 255 255
+TimeCourseThick:    3
+ReferenceFuncColor: 0 0 80
+ReferenceFuncThick: 3
+
+NrOfConditions:  6
+
+Baseline
+9
+1 17
+49 73
+105 129
+155 179
+211 235
+267 291
+317 341
+367 391
+417 433
+Color:  80 80 80
+
+2D
+2
+130 154
+392 416
+Color:  255 0 0
+
+Natural 3D
+2
+18 42
+342 366
+Color:  0 187 254
+
+Pseudo 3D
+2
+180 204
+292 316
+Color:  4 208 14
+
+Monocular
+2
+74 98
+236 260
+Color:  252 252 104
+
+Cue
+4
+43 48
+99 104
+205 210
+261 266
+Color:  155 155 155
+
