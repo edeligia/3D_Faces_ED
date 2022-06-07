@@ -1,0 +1,12 @@
+
+FileVersion:          3
+TypeOfFunctionalData: VTC
+
+RFX-GLM:              0
+
+PSCTransformation:    1
+zTransformation:      0
+SeparatePredictors:   0
+
+NrOfStudies:          1
+"C:/Users/edeligia/Documents/Faces3D_ED/BIDS/derivatives/sourcedata_bv/sub-03/ses-01/func/sub-03_ses-01_task-3DFaces_run-01_bold_SCCTBL_3DMCTS_MNI_THPGLMF3c_SD3DVSS5.00mm.vtc" "C:/Users/edeligia/Documents/Faces3D_ED/BIDS/derivatives/sourcedata_bv/sub-03/ses-01/func/sub-03_ses-01_task-3DFaces_run-01_bold_SCCTBL_3DMCTS_MNI_THPGLMF3c_SD3DVSS5.00mm.sdm"
