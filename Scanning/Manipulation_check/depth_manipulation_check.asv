@@ -435,10 +435,7 @@ for v = 1:d.number_volumes
 %                 d.volume_data(v).button_press = true;
 %                 d.volume_data(v).button_press_time = timeInVol;
             elseif any(keyCode(p.KEY.BUTTON_BOX_GOOD))
-                d.volume_data(v).button_press = true;
-                fprintf('-Button Box\n');
-            elseif any(keyCode(p.KEY.BUTTON_BOX_BAD))
-                d.volume_data(v).button_press = false;
+               d.volume_data(v).button_press = true;
                 fprintf('-Button Box\n');
             end
         end
@@ -455,7 +452,7 @@ for v = 1:d.number_volumes
             break
         end
         
-        [keyIsDown, ~, keyCode] = KbCheck(-1); %get key(s)
+        [keyIsDown, ~, keyCode] = KbWait(-1); %get key(s)
         if keyIsDown
             if any(keyCode(p.KEY.TRIGGER))
                 d.volume_data(v).recievedTrigger = true;
@@ -463,16 +460,11 @@ for v = 1:d.number_volumes
                 break
             elseif any(keyCode(p.KEY.STOP))
                 error('Stop key was pressed.') 
-%             elseif ~d.volume_data(v).button_press & any(keyCode(p.KEY.BUTTON_BOX))
-%                 d.volume_data(v).button_press = true;
-%                 d.volume_data(v).button_press_time = timeInVol;
-            elseif any(keyCode(p.KEY.BUTTON_BOX_GOOD))
+            elseif ~d.volume_data(v).button_press & any(keyCode(p.KEY.BUTTON_BOX))
                 d.volume_data(v).button_press = true;
+                d.volume_data(v).button_press_time = timeInVol;
                 fprintf('-Button Box\n');
-            elseif any(keyCode(p.KEY.BUTTON_BOX_BAD))
-                d.volume_data(v).button_press = false;
-                fprintf('-Button Box\n');
-        end
+            end
         end
     end
     
