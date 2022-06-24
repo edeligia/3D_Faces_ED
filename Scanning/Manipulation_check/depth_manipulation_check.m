@@ -81,6 +81,7 @@ p.SCREEN.BUFFER_ID.RIGHT = 1;
 % p.IMAGES.VERTICAL_SHIFT = 0; %number of PIXELS, positive is down, negative is up
 p.IMAGES.EXPECTED_WIDTH = 1920;
 p.IMAGES.EXPECTED_HEIGHT = 1080;
+p.IMAGES.FLIP_HORIZONTAL = true;
 
 %fixation
 p.FIXATION.SHOW = true;
@@ -435,11 +436,13 @@ for v = 1:d.number_volumes
 %                 d.volume_data(v).button_press = true;
 %                 d.volume_data(v).button_press_time = timeInVol;
             elseif any(keyCode(p.KEY.BUTTON_BOX_GOOD))
-                d.volume_data(v).button_press = true;
+                d.volume_data(v).button_press = 2;
                 fprintf('-Button Box\n');
             elseif any(keyCode(p.KEY.BUTTON_BOX_BAD))
-                d.volume_data(v).button_press = false;
+                d.volume_data(v).button_press = 1;
                 fprintf('-Button Box\n');
+            elseif ~any(keyCode(p.KEY.BUTTON_BOX_BAD)) || ~any(keyCode(p.KEY.BUTTON_BOX_GOOD))
+                d.volume_data(v).button_press = 0;
             end
         end
         
@@ -558,6 +561,11 @@ end
 for f = 1:length(d.image_filename_lookup)
     images(f).filename = d.image_filename_lookup{f};
     image = imread([p.PATH.IMAGE images(f).filename]);
+    
+    %flip?
+    if p.IMAGES.FLIP_HORIZONTAL
+        image = image(:, end:-1:1, :);
+    end
     
     %resize
     if p.IMAGES.RESIZE_FACTOR ~= 1
