@@ -1,5 +1,5 @@
 function test_images
-%Screen('Preference', 'SkipSyncTests', 0);
+Screen('Preference', 'SkipSyncTests', 0);
 %% params
 
 KbName('UnifyKeyNames');

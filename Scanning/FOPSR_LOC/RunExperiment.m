@@ -81,7 +81,6 @@ p.SCREEN.BUFFER_ID.RIGHT = 1;
 %image
 p.IMAGES.EXPECTED_WIDTH = 1920;
 p.IMAGES.EXPECTED_HEIGHT = 1080;
-p.IMAGES.FLIP_HORIZONTAL = true;
 
 %fixation
 p.FIXATION.SHOW = true;
@@ -549,11 +548,6 @@ end
 for f = 1:length(d.image_filename_lookup)
     images(f).filename = d.image_filename_lookup{f};
     image = imread([p.PATH.IMAGE images(f).filename]);
-    
-    %flip?
-    if p.IMAGES.FLIP_HORIZONTAL
-        image = image(:, end:-1:1, :);
-    end
     
     %resize
     if p.IMAGES.RESIZE_FACTOR ~= 1
