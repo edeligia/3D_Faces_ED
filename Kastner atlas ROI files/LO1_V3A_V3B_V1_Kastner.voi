@@ -2656,7 +2656,7 @@ NrOfVoxels: 2632
 -48 -82 14
 
 NameOfVOI:  V3A
-ColorOfVOI: 255 255 127
+ColorOfVOI: 170 170 255
 
 NrOfVoxels: 5547
 34 -93 21
@@ -8208,7 +8208,7 @@ NrOfVoxels: 5547
 -29 -96 16
 
 NameOfVOI:  V3B
-ColorOfVOI: 170 255 127
+ColorOfVOI: 255 85 255
 
 NrOfVoxels: 2709
 41 -88 17
@@ -22869,12 +22869,4 @@ NrOfVoxels: 11942
 -19 -104 -3
 
 
-NrOfVOIVTCs: 8
-C:/Users/edeligia/Documents/Faces3D_ED/BIDS/derivatives/sourcedata_bv/sub-03/ses-01/func/sub-03_ses-01_task-3DFaces_run-01_bold_SCCTBL_3DMCTS_MNI_THPGLMF3c_SD3DVSS5.00mm.vtc
-C:/Users/edeligia/Documents/Faces3D_ED/BIDS/derivatives/sourcedata_bv/sub-03/ses-01/func/sub-03_ses-01_task-3DFaces_run-02_bold_SCCTBL_3DMCTS_MNI_THPGLMF3c_SD3DVSS5.00mm.vtc
-C:/Users/edeligia/Documents/Faces3D_ED/BIDS/derivatives/sourcedata_bv/sub-03/ses-01/func/sub-03_ses-01_task-3DFaces_run-03_bold_SCCTBL_3DMCTS_MNI_THPGLMF3c_SD3DVSS5.00mm.vtc
-C:/Users/edeligia/Documents/Faces3D_ED/BIDS/derivatives/sourcedata_bv/sub-03/ses-01/func/sub-03_ses-01_task-3DFaces_run-04_bold_SCCTBL_3DMCTS_MNI_THPGLMF3c_SD3DVSS5.00mm.vtc
-C:/Users/edeligia/Documents/Faces3D_ED/BIDS/derivatives/sourcedata_bv/sub-03/ses-01/func/sub-03_ses-01_task-3DFaces_run-05_bold_SCCTBL_3DMCTS_MNI_THPGLMF3c_SD3DVSS5.00mm.vtc
-C:/Users/edeligia/Documents/Faces3D_ED/BIDS/derivatives/sourcedata_bv/sub-03/ses-01/func/sub-03_ses-01_task-3DFaces_run-06_bold_SCCTBL_3DMCTS_MNI_THPGLMF3c_SD3DVSS5.00mm.vtc
-C:/Users/edeligia/Documents/Faces3D_ED/BIDS/derivatives/sourcedata_bv/sub-03/ses-01/func/sub-03_ses-01_task-3DFaces_run-07_bold_SCCTBL_3DMCTS_MNI_THPGLMF3c_SD3DVSS5.00mm.vtc
-C:/Users/edeligia/Documents/Faces3D_ED/BIDS/derivatives/sourcedata_bv/sub-03/ses-01/func/sub-03_ses-01_task-3DFaces_run-08_bold_SCCTBL_3DMCTS_MNI_THPGLMF3c_SD3DVSS5.00mm.vtc
+NrOfVOIVTCs: 0
