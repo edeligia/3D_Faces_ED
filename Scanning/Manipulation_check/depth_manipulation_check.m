@@ -15,8 +15,8 @@ type = upper(type);
 switch type
     case 'PILOT'
         p.DURATION.IMAGE_PRESENTATION_SECONDS = 0.8;
-        p.SCREEN.BACKGROUND_COLOUR = [0 0 0];
-        p.SCREEN.TEXT_COLOUR = [255 255 255];
+        p.SCREEN.BACKGROUND_COLOUR = [23 32 49];
+        p.SCREEN.TEXT_COLOUR = [195 195 195];
         p.FIXATION.LEFT_VIEW.ADJUST_X = -10;
         p.FIXATION.LEFT_VIEW.ADJUST_Y = -125;
         p.FIXATION.RIGHT_VIEW.ADJUST_X = -10;
@@ -83,7 +83,7 @@ p.IMAGES.EXPECTED_WIDTH = 1920;
 p.IMAGES.EXPECTED_HEIGHT = 1080;
 
 %fixation
-p.FIXATION.SHOW = true;
+p.FIXATION.SHOW = false;
 p.FIXATION.FILEPATH = 'fixation_transparent.png';
 p.FIXATION.SIZE = [30 30];
 p.FIXATION.TRANSPARENCY_CUTOFF = 240;
@@ -474,7 +474,7 @@ for v = 1:d.number_volumes
             elseif any(keyCode(p.KEY.BUTTON_BOX_BAD))
                 d.volume_data(v).button_press = false;
                 fprintf('-Button Box\n');
-        end
+            end
         end
     end
     
