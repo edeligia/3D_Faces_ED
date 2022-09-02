@@ -1,5 +1,5 @@
-decon_count = 42;
-num_sub = 5;
+decon_count = 41;
+num_sub = 9;
 
 rel_paths = true;
 
@@ -14,15 +14,15 @@ mode = 1;
 switch mode
     case 1
         task_name = '3DFaces';
-        root = 'D:\Faces3D_ED\Multi_echo\brainvoyager\Faces-mid_echo\BIDS\derivatives\sourcedata_bv';
+        root = 'D:\Faces3D_ED\Multi_echo\brainvoyager\Faces-mid_echo\BIDS\derivatives\sourcedata_bv\';
         vols = 412;
         max_runs = 8;
         
         valid_runs = true(num_sub, max_runs);
-        valid_runs(16,2) = false;
+%         valid_runs(16,2) = false;
         
         vol_exceptions = nan(num_sub,max_runs);
-        vol_exceptions(14,:) = 336;
+%         vol_exceptions(14,:) = 336;
     case 2
         task_name = 'MainExp';
         root = 'D:\Psych9223\Data\MainExp\derivatives\';
@@ -57,7 +57,7 @@ list_vtc = cell(0);
 
 counter = 0;
 
-for sub = 1:num_sub
+for sub = 6:num_sub
     fprintf('Participant %d of %d...\n', sub, num_sub);
     
     fol = sprintf('%ssub-%02d%sses-01%sfunc%s', root, sub, filesep, filesep, filesep);
@@ -75,7 +75,7 @@ for sub = 1:num_sub
         if use_raw_vtc
             fp_vtc = sprintf('%ssub-%02d_ses-01_task-%s_run-%02d_bold_SCCTBL_3DMCTS_MNI.vtc', fol, sub, task_name, run);
         else
-            fp_vtc = sprintf('%ssub-%02d_ses-01_task-%s_run-%02d_bold_SCCTBL_3DMCTS_MNI_THPGLMF3c_SD3DVSS8.00mm.vtc', fol, sub, task_name, run);
+            fp_vtc = sprintf('%ssub-%02d_ses-01_task-%s_run-%02d_bold_SCCTBL_3DMCTS_MNI_THPGLMF3c_SD3DVSS5.00mm.vtc', fol, sub, task_name, run);
         end
         if ~exist(fp_vtc, 'file')
             error('Missing: %s', fp_vtc)
@@ -85,7 +85,7 @@ for sub = 1:num_sub
         
         %% load prt
         
-        fp_prt = sprintf('%ssub-%02d_ses-01_%s_run-%d.prt', fol, sub, task_name, run);
+        fp_prt = sprintf('%ssub-%02d_ses-01_task-%s_run-%d.prt', fol, sub, task_name, run);
         if ~exist(fp_prt, 'file')
             error('Missing: %s', fp_prt)
         else
@@ -95,7 +95,7 @@ for sub = 1:num_sub
         %% load motion
         
 %         fp_motion = sprintf('%ssub-%02d_ses-01_task-%s_run-%02d_bold_SCCTBL_3DMC.sdm', fol, sub, task_name, run);
-        fp_motion = sprintf('%ssub-%02d_ses-01_task-%s_run-%02d_bold_SCCTBL_3DMC_THPGLMF3c_ZSCORE.sdm', fol, sub, task_name, run);
+         fp_motion = sprintf('%smotion_sdm\\sub-%02d_ses-01_task-%s_run-%02d_bold_SCCTBL_3DMC_THPGLMF3c_ZSCORE.sdm', fol, sub, task_name, run);
         if ~exist(fp_motion, 'file')
             error('Missing: %s', fp_motion);
         end
@@ -120,11 +120,11 @@ for sub = 1:num_sub
         sdm.SDMMatrix = [sdm.SDMMatrix(:,1:end-1) sdm_mtn.SDMMatrix(:,1:6) sdm.SDMMatrix(:,end)];
         sdm.PredictorNames = [sdm.PredictorNames(1:end-1) sdm_mtn.PredictorNames(1:6) sdm.PredictorNames(end)];
         sdm.PredictorColors = [sdm.PredictorColors(1:end-1,:); sdm_mtn.PredictorColors(1:6,:); sdm.PredictorColors(end,:)];
-        sdm.NrOfPredictors = sdm.NrOfPredictors + 6;
+        sdm.NrOfPredictors = sdm.NrOfPredictors + 6; 
         
         %save
         fp_sdm = sprintf('%ssub-%02d_ses-01_%s_run-%d_PreprocessedMotionPONI.sdm', fol, sub, task_name, run);
-        sdm.SaveAs(fp_sdm);
+         sdm.SaveAs(fp_sdm);
         list_sdm_standard_poni{counter} = fp_sdm;
         
         %% SDM Decon
@@ -176,11 +176,11 @@ for sub = 1:num_sub
         sdm.SDMMatrix = [sdm.SDMMatrix(:,1:end-1) sdm_mtn.SDMMatrix(:,1:6) sdm.SDMMatrix(:,end)];
         sdm.PredictorNames = [sdm.PredictorNames(1:end-1) sdm_mtn.PredictorNames(1:6) sdm.PredictorNames(end)];
         sdm.PredictorColors = [sdm.PredictorColors(1:end-1,:); sdm_mtn.PredictorColors(1:6,:); sdm.PredictorColors(end,:)];
-        sdm.NrOfPredictors = sdm.NrOfPredictors + 6;
-        
+        sdm.NrOfPredictors = sdm.NrOfPredictors + 6; 
+
         %save
         fp_sdm = sprintf('%ssub-%02d_ses-01_%s_run-%d_Decon%d_PreprocessedMotionPONI.sdm', fol, sub, task_name, run, decon_count);
-%         sdm.SaveAs(fp_sdm);
+%          sdm.SaveAs(fp_sdm);
         list_sdm_decon_poni{counter} = fp_sdm;
         
         %% cleanup
