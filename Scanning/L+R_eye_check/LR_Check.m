@@ -74,8 +74,8 @@ p.SCREEN.EXPECTED_SIZE = [1080 1920]; %[height width]
 %stereo
 p.SCREEN.STEREO_MODE = 1; %1 or 11 for shutter glasses (1 seems to work better)
 p.SCREEN.PIPELINE_MODE = kPsychNeedFastBackingStore;
-p.SCREEN.BUFFER_ID.LEFT = 0; %flip these if L/R is reversed
-p.SCREEN.BUFFER_ID.RIGHT = 1;
+p.SCREEN.BUFFER_ID.LEFT = 1; %flip these if L/R is reversed
+p.SCREEN.BUFFER_ID.RIGHT = 0;
 
 %image
 % p.IMAGES.VERTICAL_SHIFT = 0; %number of PIXELS, positive is down, negative is up
