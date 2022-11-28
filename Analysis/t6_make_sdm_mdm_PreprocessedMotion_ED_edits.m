@@ -1,7 +1,7 @@
 decon_count = 41;
-num_sub = 9;
+num_sub = 11;
 
-rel_paths = true;
+rel_paths = false;
 
 use_raw_vtc = false;
 if use_raw_vtc
@@ -10,32 +10,32 @@ else
     suffix_smooth = '';
 end
 
-mode = 1;
+mode = 2;
 switch mode
     case 1
-        task_name = '3DFaces';
-        root = 'D:\Faces3D_ED\Multi_echo\brainvoyager\Faces-mid_echo\BIDS\derivatives\sourcedata_bv\';
-        vols = 412;
-        max_runs = 8;
+        task_name = 'Depth_loc';
+        root = 'D:\Faces3D_ED\Multi_echo\brainvoyager\Depth_loc-mid_echo\BIDS\derivatives\sourcedata_bv\';
+        vols = 336;
+        max_runs = 2;
         
         valid_runs = true(num_sub, max_runs);
-%         valid_runs(16,2) = false;
-        
+         valid_runs(7,2) = false;
+         valid_runs(8,2) = false;
+         valid_runs(10,:) = false;
+         valid_runs(11,2) = false;
+       
         vol_exceptions = nan(num_sub,max_runs);
 %         vol_exceptions(14,:) = 336;
     case 2
-        task_name = 'MainExp';
-        root = 'D:\Psych9223\Data\MainExp\derivatives\';
-        vols = 280;
-        max_runs = 8;
+        task_name = 'FOPSR_loc';
+        root = 'D:\Faces3D_ED\Multi_echo\brainvoyager\FOPSR_loc-mid_echo\BIDS\derivatives\sourcedata_bv\';
+        vols = 496;
+        max_runs = 2;
         
         valid_runs = true(num_sub, max_runs);
-        valid_runs(:,7:8) = false;
-        valid_runs(2:3,7) = true;
-        valid_runs(10,7:8) = true;
-        valid_runs(15,7) = true;
-        valid_runs(17,6) = false;
-        
+        valid_runs(10,:) = false;
+        valid_runs(5:9,2) = false;
+
         vol_exceptions = nan(num_sub,max_runs);
     otherwise
         error
@@ -57,7 +57,7 @@ list_vtc = cell(0);
 
 counter = 0;
 
-for sub = 6:num_sub
+for sub = 5:num_sub
     fprintf('Participant %d of %d...\n', sub, num_sub);
     
     fol = sprintf('%ssub-%02d%sses-01%sfunc%s', root, sub, filesep, filesep, filesep);
@@ -95,7 +95,7 @@ for sub = 6:num_sub
         %% load motion
         
 %         fp_motion = sprintf('%ssub-%02d_ses-01_task-%s_run-%02d_bold_SCCTBL_3DMC.sdm', fol, sub, task_name, run);
-         fp_motion = sprintf('%smotion_sdm\\sub-%02d_ses-01_task-%s_run-%02d_bold_SCCTBL_3DMC_THPGLMF3c_ZSCORE.sdm', fol, sub, task_name, run);
+         fp_motion = sprintf('%smotion_sdm\\sub-%02d_ses-01_task-%s_run-%02d_bold_SCCTBL_3DMC_THPGLMF3c.sdm', fol, sub, task_name, run);
         if ~exist(fp_motion, 'file')
             error('Missing: %s', fp_motion);
         end
@@ -113,7 +113,7 @@ for sub = 6:num_sub
         
         %save
         fp_sdm = sprintf('%ssub-%02d_ses-01_%s_run-%d.sdm', fol, sub, task_name, run);
-%         sdm.SaveAs(fp_sdm);
+          sdm.SaveAs(fp_sdm);
         list_sdm_standard{counter} = fp_sdm;
         
         %add motion
@@ -124,7 +124,7 @@ for sub = 6:num_sub
         
         %save
         fp_sdm = sprintf('%ssub-%02d_ses-01_%s_run-%d_PreprocessedMotionPONI.sdm', fol, sub, task_name, run);
-         sdm.SaveAs(fp_sdm);
+          sdm.SaveAs(fp_sdm);
         list_sdm_standard_poni{counter} = fp_sdm;
         
         %% SDM Decon
